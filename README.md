@@ -1,2 +1,4 @@
 # sendstorm [![Build status](https://ci.appveyor.com/api/projects/status/8xtxxogo6gwbjnyw?svg=true)](https://ci.appveyor.com/project/pcsajtai/sendstorm) [![Join the chat at https://gitter.im/z4kn4fein/sendstorm](https://img.shields.io/badge/gitter-join%20chat-green.svg)](https://gitter.im/z4kn4fein/sendstorm?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![NuGet Version](http://img.shields.io/nuget/v/Sendstorm.svg?style=flat)](https://www.nuget.org/packages/Sendstorm/) [![NuGet Downloads](http://img.shields.io/nuget/dt/Sendstorm.svg?style=flat)](https://www.nuget.org/packages/Sendstorm/)
+
+[![Join the chat at https://gitter.im/z4kn4fein/sendstorm](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/z4kn4fein/sendstorm?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 Portable messaging c# library
