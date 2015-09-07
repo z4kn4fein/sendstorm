@@ -13,6 +13,7 @@ namespace Sendstorm
     {
         private readonly IDictionary<Type, IDictionary<int, StandardSubscription>> subscriptionRepository;
         private readonly DisposableReaderWriterLock readerWriterLock;
+        private readonly SynchronizationContext context = SynchronizationContext.Current;
 
         public MessagePublisher()
         {
@@ -90,7 +91,7 @@ namespace Sendstorm
             switch (executionTarget)
             {
                 case ExecutionTarget.UiThread:
-                    return new SynchronizedSubscription(messageReciever, filter?.Target, filter?.GetMethodInfo(), SynchronizationContext.Current);
+                    return new SynchronizedSubscription(messageReciever, filter?.Target, filter?.GetMethodInfo(), this.context ?? SynchronizationContext.Current);
                 case ExecutionTarget.BackgroundThread:
                     return new BackgroundSubscription(messageReciever, filter?.Target, filter?.GetMethodInfo());
                 case ExecutionTarget.BroadcastThread:
