@@ -80,6 +80,8 @@ namespace Sendstorm
         {
             var subscribers = this.GetSubscribers(message);
 
+            if (subscribers == null) return;
+
             foreach (var subscriber in subscribers)
             {
                 subscriber.PublishMessage(message);
@@ -94,7 +96,6 @@ namespace Sendstorm
                     return new SynchronizedSubscription(messageReciever, filter?.Target, filter?.GetMethodInfo(), this.context ?? SynchronizationContext.Current);
                 case ExecutionTarget.BackgroundThread:
                     return new BackgroundSubscription(messageReciever, filter?.Target, filter?.GetMethodInfo());
-                case ExecutionTarget.BroadcastThread:
                 default:
                     return new StandardSubscription(messageReciever, filter?.Target, filter?.GetMethodInfo());
             }
@@ -102,13 +103,13 @@ namespace Sendstorm
 
         private StandardSubscription[] GetSubscribers<TMessage>(TMessage message)
         {
-            IDictionary<int, StandardSubscription> subscribers;
             var messageType = typeof(TMessage);
 
             using (this.readerWriterLock.AquireReadLock())
             {
+                IDictionary<int, StandardSubscription> subscribers;
                 this.subscriptionRepository.TryGetValue(messageType, out subscribers);
-                return subscribers.Values.ToArray();
+                return subscribers?.Values.ToArray();
             }
         }
     }

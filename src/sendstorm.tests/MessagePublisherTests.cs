@@ -27,6 +27,12 @@ namespace Sandstorm.Tests.MessagePublisherTests
         }
 
         [TestMethod]
+        public void MessagePublisherTests_BroadcastWithoutSubscribers()
+        {
+            publisher.Broadcast(5);
+        }
+
+        [TestMethod]
         public void MessagePublisherTests_SubscribePublishTest()
         {
             var reciever = new FakeIntMessageReciever();
