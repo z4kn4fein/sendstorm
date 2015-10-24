@@ -27,10 +27,12 @@ namespace Sendstorm
             var messageType = typeof(TMessage);
 
             using (this.readerWriterLock.AquireWriteLock())
+            {
                 if (!this.subscriptionRepository.TryGetValue(messageType, out subscribers))
                     this.AddToDictionary(messageReciever, messageType, filter, executionTarget);
                 else
                     this.CheckForSubscribers(messageReciever, subscribers, filter, executionTarget);
+            }
         }
 
         public void UnSubscribe<TMessage>(IMessageReceiver<TMessage> messageReciever)
@@ -48,10 +50,11 @@ namespace Sendstorm
         private void CheckForSubscribers<TMessage>(IMessageReceiver<TMessage> messageReciever, IDictionary<int, StandardSubscription> subscribers, Func<TMessage, bool> filter, ExecutionTarget executionTarget)
         {
             StandardSubscription existingSubscriber;
-            if (!subscribers.TryGetValue(messageReciever.GetHashCode(), out existingSubscriber))
+            var hashCode = messageReciever.GetHashCode();
+            if (!subscribers.TryGetValue(hashCode, out existingSubscriber))
             {
                 var subscription = this.CreateSubscription(messageReciever, filter, executionTarget);
-                subscribers.Add(messageReciever.GetHashCode(), subscription);
+                subscribers.Add(hashCode, subscription);
             }
             else
             {
@@ -62,7 +65,7 @@ namespace Sendstorm
                 }
                 else
                 {
-                    throw new InvalidOperationException("The given type is already in the subscription list.");
+                    throw new InvalidOperationException("The given object is already in the subscription list.");
                 }
             }
         }
