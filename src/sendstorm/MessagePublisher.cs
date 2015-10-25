@@ -2,7 +2,6 @@
 using Sendstorm.Infrastructure;
 using Sendstorm.Subscription;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -11,72 +10,67 @@ namespace Sendstorm
 {
     public class MessagePublisher : IMessagePublisher
     {
-        private readonly IDictionary<Type, IDictionary<int, StandardSubscription>> subscriptionRepository;
+        private readonly Ref<ImmutableTree<Type, Ref<ImmutableTree<object, StandardSubscription>>>> subscriptionRepository;
         private readonly DisposableReaderWriterLock readerWriterLock;
         private readonly SynchronizationContext context = SynchronizationContext.Current;
 
         public MessagePublisher()
         {
-            this.subscriptionRepository = new Dictionary<Type, IDictionary<int, StandardSubscription>>();
+            this.subscriptionRepository = new Ref<ImmutableTree<Type, Ref<ImmutableTree<object, StandardSubscription>>>>(ImmutableTree<Type, Ref<ImmutableTree<object, StandardSubscription>>>.Empty);
             this.readerWriterLock = new DisposableReaderWriterLock();
         }
 
         public void Subscribe<TMessage>(IMessageReceiver<TMessage> messageReciever, Func<TMessage, bool> filter = null, ExecutionTarget executionTarget = ExecutionTarget.BroadcastThread)
         {
-            IDictionary<int, StandardSubscription> subscribers;
             var messageType = typeof(TMessage);
 
-            using (this.readerWriterLock.AquireWriteLock())
+            var immutableTree = new Ref<ImmutableTree<object, StandardSubscription>>(ImmutableTree<object, StandardSubscription>.Empty);
+            var subscription = this.CreateSubscription(messageReciever, filter, executionTarget);
+            var newTree = new Ref<ImmutableTree<object, StandardSubscription>>(immutableTree.Value.AddOrUpdate(messageReciever, subscription));
+
+            var currentRepository = this.subscriptionRepository.Value;
+            var newRepository = currentRepository.AddOrUpdate(messageType, newTree, (oldValue, newValue) =>
             {
-                if (!this.subscriptionRepository.TryGetValue(messageType, out subscribers))
-                    this.AddToDictionary(messageReciever, messageType, filter, executionTarget);
-                else
-                    this.CheckForSubscribers(messageReciever, subscribers, filter, executionTarget);
-            }
+                var currentSubscriptions = oldValue.Value;
+                var newSubscription = currentSubscriptions.AddOrUpdate(messageReciever, subscription, (oldSubscription, newSubs) =>
+                {
+                    object target;
+                    if (!oldSubscription.Subscriber.TryGetTarget(out target))
+                    {
+                        oldSubscription.Subscriber.SetTarget(messageReciever);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("The given object is already in the subscription list.");
+                    }
+
+                    return oldSubscription;
+                });
+
+                if (!oldValue.TrySwapIfStillCurrent(currentSubscriptions, newSubscription))
+                    oldValue.Swap(_ => newSubscription);
+                return oldValue;
+            });
+
+            if (!this.subscriptionRepository.TrySwapIfStillCurrent(currentRepository, newRepository))
+                this.subscriptionRepository.Swap(_ => newRepository);
         }
 
         public void UnSubscribe<TMessage>(IMessageReceiver<TMessage> messageReciever)
         {
-            using (this.readerWriterLock.AquireWriteLock())
-            {
-                IDictionary<int, StandardSubscription> subscribers;
-                var messageType = typeof(TMessage);
+            var messageType = typeof(TMessage);
+            var currentRepository = this.subscriptionRepository.Value.GetValueOrDefault(messageType);
+            var subscribers = currentRepository.Value;
 
-                if (!this.subscriptionRepository.TryGetValue(messageType, out subscribers)) return;
-                subscribers.Remove(messageReciever.GetHashCode());
-            }
-        }
+            var newSubscribers = subscribers.Update(messageReciever, null);
 
-        private void CheckForSubscribers<TMessage>(IMessageReceiver<TMessage> messageReciever, IDictionary<int, StandardSubscription> subscribers, Func<TMessage, bool> filter, ExecutionTarget executionTarget)
-        {
-            StandardSubscription existingSubscriber;
-            var hashCode = messageReciever.GetHashCode();
-            if (!subscribers.TryGetValue(hashCode, out existingSubscriber))
-            {
-                var subscription = this.CreateSubscription(messageReciever, filter, executionTarget);
-                subscribers.Add(hashCode, subscription);
-            }
-            else
-            {
-                object target;
-                if (!existingSubscriber.Subscriber.TryGetTarget(out target))
-                {
-                    existingSubscriber.Subscriber.SetTarget(messageReciever);
-                }
-                else
-                {
-                    throw new InvalidOperationException("The given object is already in the subscription list.");
-                }
-            }
-        }
+            if (!currentRepository.TrySwapIfStillCurrent(subscribers, newSubscribers))
+                currentRepository.Swap(_ => newSubscribers);
 
-        private void AddToDictionary<TMessage>(IMessageReceiver<TMessage> messageReciever, Type messageType, Func<TMessage, bool> filter, ExecutionTarget executionTarget)
-        {
-            var dictionary = new Dictionary<int, StandardSubscription>();
-            var subscription = this.CreateSubscription(messageReciever, filter, executionTarget);
-            dictionary.Add(messageReciever.GetHashCode(), subscription);
+            var newRepository = this.subscriptionRepository.Value.Update(messageType, currentRepository);
 
-            this.subscriptionRepository.Add(messageType, dictionary);
+            if (!this.subscriptionRepository.TrySwapIfStillCurrent(this.subscriptionRepository.Value, newRepository))
+                this.subscriptionRepository.Swap(_ => newRepository);
         }
 
         public void Broadcast<TMessage>(TMessage message)
@@ -107,13 +101,8 @@ namespace Sendstorm
         private StandardSubscription[] GetSubscribers<TMessage>(TMessage message)
         {
             var messageType = typeof(TMessage);
-
-            using (this.readerWriterLock.AquireReadLock())
-            {
-                IDictionary<int, StandardSubscription> subscribers;
-                this.subscriptionRepository.TryGetValue(messageType, out subscribers);
-                return subscribers?.Values.ToArray();
-            }
+            var subscriptions = this.subscriptionRepository.Value.GetValueOrDefault(messageType);
+            return subscriptions?.Value?.Enumerate().Where(sub => sub.Value != null).Select(sub => sub.Value).ToArray();
         }
     }
 }
