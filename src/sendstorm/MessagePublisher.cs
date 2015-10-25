@@ -27,12 +27,10 @@ namespace Sendstorm
             var immutableTree = new Ref<ImmutableTree<object, StandardSubscription>>(ImmutableTree<object, StandardSubscription>.Empty);
             var subscription = this.CreateSubscription(messageReciever, filter, executionTarget);
             var newTree = new Ref<ImmutableTree<object, StandardSubscription>>(immutableTree.Value.AddOrUpdate(messageReciever, subscription));
-
-            var currentRepository = this.subscriptionRepository.Value;
-            var newRepository = currentRepository.AddOrUpdate(messageType, newTree, (oldValue, newValue) =>
+            
+            var newRepository = this.subscriptionRepository.Value.AddOrUpdate(messageType, newTree, (oldValue, newValue) =>
             {
-                var currentSubscriptions = oldValue.Value;
-                var newSubscription = currentSubscriptions.AddOrUpdate(messageReciever, subscription, (oldSubscription, newSubs) =>
+                var newSubscription = oldValue.Value.AddOrUpdate(messageReciever, subscription, (oldSubscription, newSubs) =>
                 {
                     object target;
                     if (!oldSubscription.Subscriber.TryGetTarget(out target))
@@ -47,12 +45,12 @@ namespace Sendstorm
                     return oldSubscription;
                 });
 
-                if (!oldValue.TrySwapIfStillCurrent(currentSubscriptions, newSubscription))
+                if (!oldValue.TrySwapIfStillCurrent(oldValue.Value, newSubscription))
                     oldValue.Swap(_ => newSubscription);
                 return oldValue;
             });
 
-            if (!this.subscriptionRepository.TrySwapIfStillCurrent(currentRepository, newRepository))
+            if (!this.subscriptionRepository.TrySwapIfStillCurrent(this.subscriptionRepository.Value, newRepository))
                 this.subscriptionRepository.Swap(_ => newRepository);
         }
 
@@ -60,11 +58,10 @@ namespace Sendstorm
         {
             var messageType = typeof(TMessage);
             var currentRepository = this.subscriptionRepository.Value.GetValueOrDefault(messageType);
-            var subscribers = currentRepository.Value;
 
-            var newSubscribers = subscribers.Update(messageReciever, null);
+            var newSubscribers = currentRepository.Value.Update(messageReciever, null);
 
-            if (!currentRepository.TrySwapIfStillCurrent(subscribers, newSubscribers))
+            if (!currentRepository.TrySwapIfStillCurrent(currentRepository.Value, newSubscribers))
                 currentRepository.Swap(_ => newSubscribers);
 
             var newRepository = this.subscriptionRepository.Value.Update(messageType, currentRepository);
