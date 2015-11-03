@@ -11,13 +11,12 @@ namespace Sendstorm
     public class MessagePublisher : IMessagePublisher
     {
         private readonly Ref<ImmutableTree<Type, Ref<ImmutableTree<object, StandardSubscription>>>> subscriptionRepository;
-        private readonly DisposableReaderWriterLock readerWriterLock;
+        private readonly object syncObject = new object();
         private readonly SynchronizationContext context = SynchronizationContext.Current;
 
         public MessagePublisher()
         {
             this.subscriptionRepository = new Ref<ImmutableTree<Type, Ref<ImmutableTree<object, StandardSubscription>>>>(ImmutableTree<Type, Ref<ImmutableTree<object, StandardSubscription>>>.Empty);
-            this.readerWriterLock = new DisposableReaderWriterLock();
         }
 
         public void Subscribe<TMessage>(IMessageReceiver<TMessage> messageReciever, Func<TMessage, bool> filter = null, ExecutionTarget executionTarget = ExecutionTarget.BroadcastThread)
@@ -27,47 +26,53 @@ namespace Sendstorm
             var immutableTree = new Ref<ImmutableTree<object, StandardSubscription>>(ImmutableTree<object, StandardSubscription>.Empty);
             var subscription = this.CreateSubscription(messageReciever, filter, executionTarget);
             var newTree = new Ref<ImmutableTree<object, StandardSubscription>>(immutableTree.Value.AddOrUpdate(messageReciever, subscription));
-            
-            var newRepository = this.subscriptionRepository.Value.AddOrUpdate(messageType, newTree, (oldValue, newValue) =>
-            {
-                var newSubscription = oldValue.Value.AddOrUpdate(messageReciever, subscription, (oldSubscription, newSubs) =>
-                {
-                    object target;
-                    if (!oldSubscription.Subscriber.TryGetTarget(out target))
-                    {
-                        oldSubscription.Subscriber.SetTarget(messageReciever);
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException("The given object is already in the subscription list.");
-                    }
 
-                    return oldSubscription;
+            lock (this.syncObject)
+            {
+                var newRepository = this.subscriptionRepository.Value.AddOrUpdate(messageType, newTree, (oldValue, newValue) =>
+                {
+                    var newSubscription = oldValue.Value.AddOrUpdate(messageReciever, subscription, (oldSubscription, newSubs) =>
+                    {
+                        object target;
+                        if (!oldSubscription.Subscriber.TryGetTarget(out target))
+                        {
+                            oldSubscription.Subscriber.SetTarget(messageReciever);
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException("The given object is already in the subscription list.");
+                        }
+
+                        return oldSubscription;
+                    });
+
+                    if (!oldValue.TrySwapIfStillCurrent(oldValue.Value, newSubscription))
+                        oldValue.Swap(_ => newSubscription);
+                    return oldValue;
                 });
 
-                if (!oldValue.TrySwapIfStillCurrent(oldValue.Value, newSubscription))
-                    oldValue.Swap(_ => newSubscription);
-                return oldValue;
-            });
-
-            if (!this.subscriptionRepository.TrySwapIfStillCurrent(this.subscriptionRepository.Value, newRepository))
-                this.subscriptionRepository.Swap(_ => newRepository);
+                if (!this.subscriptionRepository.TrySwapIfStillCurrent(this.subscriptionRepository.Value, newRepository))
+                    this.subscriptionRepository.Swap(_ => newRepository);
+            }
         }
 
         public void UnSubscribe<TMessage>(IMessageReceiver<TMessage> messageReciever)
         {
-            var messageType = typeof(TMessage);
-            var currentRepository = this.subscriptionRepository.Value.GetValueOrDefault(messageType);
+            lock (this.syncObject)
+            {
+                var messageType = typeof(TMessage);
+                var currentRepository = this.subscriptionRepository.Value.GetValueOrDefault(messageType);
 
-            var newSubscribers = currentRepository.Value.Update(messageReciever, null);
+                var newSubscribers = currentRepository.Value.Update(messageReciever, null);
 
-            if (!currentRepository.TrySwapIfStillCurrent(currentRepository.Value, newSubscribers))
-                currentRepository.Swap(_ => newSubscribers);
+                if (!currentRepository.TrySwapIfStillCurrent(currentRepository.Value, newSubscribers))
+                    currentRepository.Swap(_ => newSubscribers);
 
-            var newRepository = this.subscriptionRepository.Value.Update(messageType, currentRepository);
+                var newRepository = this.subscriptionRepository.Value.Update(messageType, currentRepository);
 
-            if (!this.subscriptionRepository.TrySwapIfStillCurrent(this.subscriptionRepository.Value, newRepository))
-                this.subscriptionRepository.Swap(_ => newRepository);
+                if (!this.subscriptionRepository.TrySwapIfStillCurrent(this.subscriptionRepository.Value, newRepository))
+                    this.subscriptionRepository.Swap(_ => newRepository);
+            }
         }
 
         public void Broadcast<TMessage>(TMessage message)
