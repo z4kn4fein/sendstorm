@@ -10,28 +10,28 @@ namespace Sendstorm
 {
     public class MessagePublisher : IMessagePublisher
     {
-        private readonly Ref<ImmutableTree<Type, Ref<ImmutableTree<object, StandardSubscription>>>> subscriptionRepository;
+        private ImmutableTree<Type, ImmutableTree<object, StandardSubscription>> subscriptionRepository;
         private readonly object syncObject = new object();
         private readonly SynchronizationContext context = SynchronizationContext.Current;
 
         public MessagePublisher()
         {
-            this.subscriptionRepository = new Ref<ImmutableTree<Type, Ref<ImmutableTree<object, StandardSubscription>>>>(ImmutableTree<Type, Ref<ImmutableTree<object, StandardSubscription>>>.Empty);
+            this.subscriptionRepository = ImmutableTree<Type, ImmutableTree<object, StandardSubscription>>.Empty;
         }
 
         public void Subscribe<TMessage>(IMessageReceiver<TMessage> messageReciever, Func<TMessage, bool> filter = null, ExecutionTarget executionTarget = ExecutionTarget.BroadcastThread)
         {
             var messageType = typeof(TMessage);
 
-            var immutableTree = new Ref<ImmutableTree<object, StandardSubscription>>(ImmutableTree<object, StandardSubscription>.Empty);
+            var immutableTree = ImmutableTree<object, StandardSubscription>.Empty;
             var subscription = this.CreateSubscription(messageReciever, filter, executionTarget);
-            var newTree = new Ref<ImmutableTree<object, StandardSubscription>>(immutableTree.Value.AddOrUpdate(messageReciever, subscription));
+            var newTree = immutableTree.AddOrUpdate(messageReciever, subscription);
 
             lock (this.syncObject)
             {
-                var newRepository = this.subscriptionRepository.Value.AddOrUpdate(messageType, newTree, (oldValue, newValue) =>
+                var newRepository = this.subscriptionRepository.AddOrUpdate(messageType, newTree, (oldValue, newValue) =>
                 {
-                    var newSubscription = oldValue.Value.AddOrUpdate(messageReciever, subscription, (oldSubscription, newSubs) =>
+                    return oldValue.AddOrUpdate(messageReciever, subscription, (oldSubscription, newSubs) =>
                     {
                         object target;
                         if (!oldSubscription.Subscriber.TryGetTarget(out target))
@@ -45,14 +45,9 @@ namespace Sendstorm
 
                         return oldSubscription;
                     });
-
-                    if (!oldValue.TrySwapIfStillCurrent(oldValue.Value, newSubscription))
-                        oldValue.Swap(_ => newSubscription);
-                    return oldValue;
                 });
 
-                if (!this.subscriptionRepository.TrySwapIfStillCurrent(this.subscriptionRepository.Value, newRepository))
-                    this.subscriptionRepository.Swap(_ => newRepository);
+                this.subscriptionRepository = newRepository;
             }
         }
 
@@ -61,17 +56,8 @@ namespace Sendstorm
             lock (this.syncObject)
             {
                 var messageType = typeof(TMessage);
-                var currentRepository = this.subscriptionRepository.Value.GetValueOrDefault(messageType);
-
-                var newSubscribers = currentRepository.Value.Update(messageReciever, null);
-
-                if (!currentRepository.TrySwapIfStillCurrent(currentRepository.Value, newSubscribers))
-                    currentRepository.Swap(_ => newSubscribers);
-
-                var newRepository = this.subscriptionRepository.Value.Update(messageType, currentRepository);
-
-                if (!this.subscriptionRepository.TrySwapIfStillCurrent(this.subscriptionRepository.Value, newRepository))
-                    this.subscriptionRepository.Swap(_ => newRepository);
+                var currentRepository = this.subscriptionRepository.GetValueOrDefault(messageType).Update(messageReciever, null);
+                this.subscriptionRepository = this.subscriptionRepository.Update(messageType, currentRepository);
             }
         }
 
@@ -103,8 +89,8 @@ namespace Sendstorm
         private StandardSubscription[] GetSubscribers<TMessage>(TMessage message)
         {
             var messageType = typeof(TMessage);
-            var subscriptions = this.subscriptionRepository.Value.GetValueOrDefault(messageType);
-            return subscriptions?.Value?.Enumerate().Where(sub => sub.Value != null).Select(sub => sub.Value).ToArray();
+            var subscriptions = this.subscriptionRepository.GetValueOrDefault(messageType);
+            return subscriptions?.Enumerate().Where(sub => sub.Value != null).Select(sub => sub.Value).ToArray();
         }
     }
 }
