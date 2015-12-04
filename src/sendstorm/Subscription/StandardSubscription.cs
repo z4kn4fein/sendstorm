@@ -28,21 +28,16 @@ namespace Sendstorm.Subscription
                 return;
 
             var reciever = target as IMessageReceiver<TMessage>;
-            if (reciever == null) return;
 
-            reciever.Receive(message);
+            reciever?.Receive(message);
         }
 
         private bool IsSubscriptionValid<TMessage>(TMessage message, out object target)
         {
-            object filterOrigin;
+            object origin;
             if (!this.Subscriber.TryGetTarget(out target)) return false;
 
-            if (this.filter != null && this.filterOrigin.TryGetTarget(out filterOrigin) &&
-            !(bool)this.filter.Invoke(filterOrigin, new object[] { message }))
-                return false;
-
-            return true;
+            return this.filter == null || !this.filterOrigin.TryGetTarget(out origin) || (bool)this.filter.Invoke(origin, new object[] { message });
         }
     }
 }
