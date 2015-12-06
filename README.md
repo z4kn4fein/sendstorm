@@ -8,6 +8,7 @@ Supported platforms:
  - Windows Phone Silverlight 8/8.1
  - Windows Phone 8.1
  - Xamarin (Android/iOS/iOS Classic)
+
 ##Usage
 ####Subscribe/Broadcast
 When you want to subscribe to a specified event you have to implement the **IMessageReciever** interface.
@@ -44,8 +45,8 @@ messagePublisher.Subscribe<FooMessage>(new Foo(), fooMessage => false,
 ```
 Available options are:
 
- - BroadcastThread
- - BackgroundThread
- - UiThread
+ - BroadcastThread (it'll delegate the recieve call to the thread from where the broadcast was called)
+ - BackgroundThread (it'll create a task and will let the ThreadPool schedule the execution of the recieve call)
+ - UiThread (it'll delegate the recieve call to the UI thread through its SynchronizationContext)
 
 > The UI thread option only works when the **MessagePublisher** is able to collect a valid SynchronizationContext object for delegating calls to the UI thread. To achieve this you have to instantiate it on the UI thread.
