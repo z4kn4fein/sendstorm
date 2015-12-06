@@ -24,11 +24,16 @@ class Foo : IMessageReciever<FooMessage>
 Then you can subscribe your class as a listener to that specific event.
 ```c#
 var messagePublisher = new MessagePublisher();
-messagePublisher.Subscribe<FooMessage>(new Foo());
+var foo = new Foo();
+messagePublisher.Subscribe<FooMessage>(foo);
 ```
 Now you can broadcast messages to your subscribers.
 ```c#
 messagePublisher.Broadcast<FooMessage>(new FooMessage());
+```
+You are also able to unsubscribe if you don't want to recieve messages anymore.
+```c#
+messagePublisher.UnSubscribe<FooMessage>(foo);
 ```
 ####Filters
 If you want to recieve the messages conditionally you can specify a filter for your subscription which's parameter will be the message object.
