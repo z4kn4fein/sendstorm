@@ -1,6 +1,13 @@
 # sendstorm [![Build status](https://ci.appveyor.com/api/projects/status/8xtxxogo6gwbjnyw/branch/master?svg=true)](https://ci.appveyor.com/project/pcsajtai/sendstorm/branch/master) [![Join the chat at https://gitter.im/z4kn4fein/sendstorm](https://img.shields.io/badge/gitter-join%20chat-green.svg)](https://gitter.im/z4kn4fein/sendstorm?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![NuGet Version](http://img.shields.io/nuget/v/Sendstorm.svg?style=flat)](https://www.nuget.org/packages/Sendstorm/) [![NuGet Downloads](http://img.shields.io/nuget/dt/Sendstorm.svg?style=flat)](https://www.nuget.org/packages/Sendstorm/)
 This library contains a portable observer pattern implementation written in c#.
 
+**Features**:
+
+ - Subscribe to / Broadcast events
+ - Generic message types
+ - You can set filters for your subscription
+ - Delegation to execution targets
+
 **Supported platforms**:
 
  - .NET 4.5 and above
@@ -9,7 +16,7 @@ This library contains a portable observer pattern implementation written in c#.
  - Windows Phone 8.1
  - Xamarin (Android/iOS/iOS Classic)
 
-##Subscribe/Broadcast
+##Subscribe / Broadcast
 When you want to subscribe to a specified event you have to implement the **IMessageReciever** interface.
 ```c#
 class Foo : IMessageReciever<FooMessage>
