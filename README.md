@@ -1,7 +1,7 @@
 # sendstorm [![Build status](https://ci.appveyor.com/api/projects/status/8xtxxogo6gwbjnyw/branch/master?svg=true)](https://ci.appveyor.com/project/pcsajtai/sendstorm/branch/master) [![Join the chat at https://gitter.im/z4kn4fein/sendstorm](https://img.shields.io/badge/gitter-join%20chat-green.svg)](https://gitter.im/z4kn4fein/sendstorm?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![NuGet Version](http://img.shields.io/nuget/v/Sendstorm.svg?style=flat)](https://www.nuget.org/packages/Sendstorm/) [![NuGet Downloads](http://img.shields.io/nuget/dt/Sendstorm.svg?style=flat)](https://www.nuget.org/packages/Sendstorm/)
 This library contains a portable observer pattern implementation written in c#.
 
-Supported platforms:
+**Supported platforms**:
 
  - .NET 4.5 and above
  - Windows 8/8.1/10
@@ -9,8 +9,7 @@ Supported platforms:
  - Windows Phone 8.1
  - Xamarin (Android/iOS/iOS Classic)
 
-##Usage
-####Subscribe/Broadcast
+##Subscribe/Broadcast
 When you want to subscribe to a specified event you have to implement the **IMessageReciever** interface.
 ```c#
 class Foo : IMessageReciever<FooMessage>
@@ -35,14 +34,14 @@ You are also able to unsubscribe if you don't want to recieve messages anymore.
 ```c#
 messagePublisher.UnSubscribe<FooMessage>(foo);
 ```
-####Filters
+##Filters
 If you want to recieve the messages conditionally you can specify a filter for your subscription which's parameter will be the message object.
 ```c#
 messagePublisher.Subscribe<FooMessage>(new Foo(), fooMessage => false); 
 ```
 > This sample above will completely prevent the **Foo** object from recieving any **FooMessage**, in a real scenario here you can check against some props of the message object, or if you subscribe inside your subscriber object you can check the state of it.
 
-####Execution target
+##Execution target
 You can also specify where you want the **MessagePublisher** delegate your message recieve invokations.  
 ```c#
 messagePublisher.Subscribe<FooMessage>(new Foo(), fooMessage => false,
