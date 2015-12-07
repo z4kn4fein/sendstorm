@@ -11,11 +11,11 @@ Supported platforms:
 
 ##Usage
 ####Subscribe/Broadcast
-When you want to subscribe to a specified event you have to implement the **IMessageReciever** interface.
+When you want to subscribe to a specified event you have to implement the **IMessageReceiver** interface.
 ```c#
-class Foo : IMessageReciever<FooMessage>
+class Foo : IMessageReceiver<FooMessage>
 {
-	public void Recieve(FooMessage message)
+	public void Receive(FooMessage message)
 	{
 		//do something with the message
 	}
@@ -31,27 +31,27 @@ Now you can broadcast messages to your subscribers.
 ```c#
 messagePublisher.Broadcast<FooMessage>(new FooMessage());
 ```
-You are also able to unsubscribe if you don't want to recieve messages anymore.
+You are also able to unsubscribe if you don't want to receive messages anymore.
 ```c#
 messagePublisher.UnSubscribe<FooMessage>(foo);
 ```
 ####Filters
-If you want to recieve the messages conditionally you can specify a filter for your subscription which's parameter will be the message object.
+If you want to receive the messages conditionally you can specify a filter for your subscription which's parameter will be the message object.
 ```c#
 messagePublisher.Subscribe<FooMessage>(new Foo(), fooMessage => false); 
 ```
 > This sample above will completely prevent the **Foo** object from recieving any **FooMessage**, in a real scenario here you can check against some props of the message object, or if you subscribe inside your subscriber object you can check the state of it.
 
 ####Execution target
-You can also specify where you want the **MessagePublisher** delegate your message recieve invokations.  
+You can also specify where you want the **MessagePublisher** delegate your message receive invokations.  
 ```c#
 messagePublisher.Subscribe<FooMessage>(new Foo(), fooMessage => false,
 	ExecutionTarget.BackgroundThread); 
 ```
 Available options are:
 
- - BroadcastThread (it'll delegate the recieve call to the thread from where the broadcast was called)
- - BackgroundThread (it'll create a task and will let the ThreadPool schedule the execution of the recieve call)
- - UiThread (it'll delegate the recieve call to the UI thread through its SynchronizationContext)
+ - BroadcastThread (it'll delegate the receive call to the thread from where the broadcast was called)
+ - BackgroundThread (it'll create a task and will let the ThreadPool schedule the execution of the receive call)
+ - UiThread (it'll delegate the receive call to the UI thread through its SynchronizationContext)
 
 > The UI thread option only works when the **MessagePublisher** is able to collect a valid SynchronizationContext object for delegating calls to the UI thread. To achieve this you have to instantiate it on the UI thread.
