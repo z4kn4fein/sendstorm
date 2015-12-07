@@ -2,6 +2,9 @@
 
 namespace Sendstorm.Infrastructure
 {
+    /// <summary>
+    /// Represents an interface for observer pattern implementation.
+    /// </summary>
     public interface IMessagePublisher
     {
         /// <summary>

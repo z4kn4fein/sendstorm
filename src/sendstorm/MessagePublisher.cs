@@ -8,12 +8,18 @@ using System.Threading;
 
 namespace Sendstorm
 {
+    /// <summary>
+    /// Represents an observer pattern implementation.
+    /// </summary>
     public class MessagePublisher : IMessagePublisher
     {
         private ImmutableTree<Type, ImmutableTree<object, StandardSubscription>> subscriptionRepository;
         private readonly object syncObject = new object();
         private readonly SynchronizationContext context = SynchronizationContext.Current;
 
+        /// <summary>
+        /// Constructs the <see cref="MessagePublisher"/>
+        /// </summary>
         public MessagePublisher()
         {
             this.subscriptionRepository = ImmutableTree<Type, ImmutableTree<object, StandardSubscription>>.Empty;
@@ -24,7 +30,7 @@ namespace Sendstorm
         /// </summary>
         /// <typeparam name="TMessage">The message type.</typeparam>
         /// <param name="messageReciever">The subscriber object.</param>
-        /// <param name="filter">Subscription filter which will be evaluated before every message broadcast. With this you can make conditional subscriptions.</param>
+        /// <param name="filter">Subscription filter which will be evaluated before every broadcast. With this you can make conditional subscriptions.</param>
         /// <param name="executionTarget">The target of the message delivery, available values are: BroadcastThread, BackgroundThread, UiThread.</param>
         public void Subscribe<TMessage>(IMessageReceiver<TMessage> messageReciever, Func<TMessage, bool> filter = null, ExecutionTarget executionTarget = ExecutionTarget.BroadcastThread)
         {
