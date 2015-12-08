@@ -118,6 +118,27 @@ namespace Sandstorm.Tests.MessagePublisherTests
             Assert.AreEqual(expectedResult, result);
         }
 
+        [TestMethod]
+        public void MessagePublisherTests_WeakReference()
+        {
+            var reciever = new FakeHashCodeMessageReciever();
+
+            publisher.Subscribe(reciever);
+
+            reciever = null;
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true);
+            GC.WaitForPendingFinalizers();
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true);
+
+            var newreciever = new FakeHashCodeMessageReciever();
+            publisher.Subscribe(newreciever);
+
+            var expectedResult = 5;
+
+            publisher.Broadcast(expectedResult);
+            Assert.AreEqual(expectedResult, newreciever.Message);
+        }
+
         public class FakeIntMessageReciever : IMessageReceiver<int>
         {
             public int Message { get; set; }
@@ -141,6 +162,21 @@ namespace Sandstorm.Tests.MessagePublisherTests
             public void Receive(string message)
             {
                 this.StringMessage = message;
+            }
+        }
+
+        public class FakeHashCodeMessageReciever : IMessageReceiver<int>
+        {
+            public int Message { get; set; }
+
+            public void Receive(int message)
+            {
+                this.Message = message;
+            }
+
+            public override int GetHashCode()
+            {
+                return 10;
             }
         }
 

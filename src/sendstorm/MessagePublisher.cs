@@ -13,7 +13,7 @@ namespace Sendstorm
     /// </summary>
     public class MessagePublisher : IMessagePublisher
     {
-        private ImmutableTree<Type, ImmutableTree<object, StandardSubscription>> subscriptionRepository;
+        private ImmutableTree<Type, ImmutableTree<StandardSubscription>> subscriptionRepository;
         private readonly object syncObject = new object();
         private readonly SynchronizationContext context = SynchronizationContext.Current;
 
@@ -22,7 +22,7 @@ namespace Sendstorm
         /// </summary>
         public MessagePublisher()
         {
-            this.subscriptionRepository = ImmutableTree<Type, ImmutableTree<object, StandardSubscription>>.Empty;
+            this.subscriptionRepository = ImmutableTree<Type, ImmutableTree<StandardSubscription>>.Empty;
         }
 
         /// <summary>
@@ -37,16 +37,16 @@ namespace Sendstorm
             Shield.EnsureNotNull(messageReciever);
 
             var messageType = typeof(TMessage);
-
-            var immutableTree = ImmutableTree<object, StandardSubscription>.Empty;
+            var hashCode = messageReciever.GetHashCode();
+            var immutableTree = ImmutableTree<StandardSubscription>.Empty;
             var subscription = this.CreateSubscription(messageReciever, filter, executionTarget);
-            var newTree = immutableTree.AddOrUpdate(messageReciever, subscription);
+            var newTree = immutableTree.AddOrUpdate(hashCode, subscription);
 
             lock (this.syncObject)
             {
                 var newRepository = this.subscriptionRepository.AddOrUpdate(messageType, newTree, (oldValue, newValue) =>
                 {
-                    return oldValue.AddOrUpdate(messageReciever, subscription, (oldSubscription, newSubs) =>
+                    return oldValue.AddOrUpdate(hashCode, subscription, (oldSubscription, newSubs) =>
                     {
                         object target;
                         if (!oldSubscription.Subscriber.TryGetTarget(out target))
@@ -77,7 +77,7 @@ namespace Sendstorm
             lock (this.syncObject)
             {
                 var messageType = typeof(TMessage);
-                var currentRepository = this.subscriptionRepository.GetValueOrDefault(messageType).Update(messageReciever, null);
+                var currentRepository = this.subscriptionRepository.GetValueOrDefault(messageType).Update(messageReciever.GetHashCode(), null);
                 this.subscriptionRepository = this.subscriptionRepository.Update(messageType, currentRepository);
             }
         }
