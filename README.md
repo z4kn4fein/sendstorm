@@ -3,10 +3,10 @@ This library contains a portable observer pattern implementation written in c#.
 
 **Features**:
 
- - Subscribe to / Broadcast events
+ - Subscribe / Broadcast
  - Generic message types
- - You can set filters for your subscription
- - Delegation to execution targets
+ - Subscription filters
+ - Execution targets
 
 **Supported platforms**:
 
