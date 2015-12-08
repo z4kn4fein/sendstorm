@@ -121,6 +121,9 @@ namespace Sandstorm.Tests.MessagePublisherTests
         [TestMethod]
         public void MessagePublisherTests_WeakReference()
         {
+
+
+            var expectedResult = 5;
             var reciever = new FakeHashCodeMessageReciever();
 
             publisher.Subscribe(reciever);
@@ -130,10 +133,10 @@ namespace Sandstorm.Tests.MessagePublisherTests
             GC.WaitForPendingFinalizers();
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true);
 
+            publisher.Broadcast(expectedResult);
+
             var newreciever = new FakeHashCodeMessageReciever();
             publisher.Subscribe(newreciever);
-
-            var expectedResult = 5;
 
             publisher.Broadcast(expectedResult);
             Assert.AreEqual(expectedResult, newreciever.Message);
