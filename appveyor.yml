@@ -22,7 +22,7 @@ build:
   parallel: true
   verbosity: normal
 test_script:
-- ps: .\coverage.ps1
+- ps: . .\coverage.ps1
 notifications:
 - provider: Email
   to:
