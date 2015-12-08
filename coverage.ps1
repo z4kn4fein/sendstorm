@@ -3,5 +3,5 @@ $coverallsPath = Join-Path $PSScriptRoot "src\packages\coveralls.io.1.3.4\tools\
 $testDllPath = Join-Path $PSScriptRoot "src\sendstorm.tests\bin\release\Sendstorm.Tests.dll"
 $vsTestPath = "c:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe"
 
-& $openCoverPath -register:user -filter:"+[*]* -[sendstorm.tests]*" -target:$vsTestPath -targetargs:"$testDllPath" -output:coverage.xml
+& $openCoverPath -register:user -filter:"+[*]* -[sendstorm.tests*]*" -target:$vsTestPath -targetargs:"$testDllPath" -output:coverage.xml
 & $coverallsPath --opencover coverage.xml
