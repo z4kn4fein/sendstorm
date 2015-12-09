@@ -83,11 +83,9 @@ namespace Sandstorm.Tests.MessagePublisherTests
         [TestMethod]
         public void MessagePublisherTests_WeakReference()
         {
-            var reciever = new Mock<IMessageReceiver<int>>();
-            reciever.Setup(rec => rec.GetHashCode()).Returns(10);
+            var reciever = new WeakReferenceMessageReceiver();
 
-            publisher.Subscribe(reciever.Object);
-            reciever.Reset();
+            publisher.Subscribe(reciever);
             reciever = null;
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true);
             GC.WaitForPendingFinalizers();
@@ -96,13 +94,11 @@ namespace Sandstorm.Tests.MessagePublisherTests
             //Ensures broadcast to a collected object doesn't kill the observer
             publisher.Broadcast(5);
 
-            var newreciever = new Mock<IMessageReceiver<int>>();
-            newreciever.Setup(rec => rec.GetHashCode()).Returns(10);
-            publisher.Subscribe(newreciever.Object);
+            var newreciever = new WeakReferenceMessageReceiver();
+            publisher.Subscribe(newreciever);
 
             publisher.Broadcast(5);
-
-            newreciever.Verify(rec => rec.Receive(5), Times.Once);
+            Assert.AreEqual(5, newreciever.Message);
         }
 
         [TestMethod]
@@ -122,6 +118,20 @@ namespace Sandstorm.Tests.MessagePublisherTests
             sub.PublishMessage(5);
 
             syncContext.Verify(context => context.Post(It.IsAny<SendOrPostCallback>(), 5), Times.Once);
+        }
+    }
+
+    class WeakReferenceMessageReceiver : IMessageReceiver<int>
+    {
+        public int Message { get; set; }
+        public void Receive(int message)
+        {
+            this.Message = message;
+        }
+
+        public override int GetHashCode()
+        {
+            return 10;
         }
     }
 }

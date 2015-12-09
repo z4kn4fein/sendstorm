@@ -5,6 +5,7 @@ This library contains a portable observer pattern implementation written in c#.
 
  - Subscribe / Broadcast
  - Generic message types
+ - Weakly referenced subscribers
  - Subscription filters
  - Execution targets
 
