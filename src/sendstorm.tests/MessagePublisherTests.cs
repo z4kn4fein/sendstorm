@@ -87,7 +87,7 @@ namespace Sandstorm.Tests.MessagePublisherTests
             reciever.Setup(rec => rec.GetHashCode()).Returns(10);
 
             publisher.Subscribe(reciever.Object);
-
+            reciever.Reset();
             reciever = null;
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true);
             GC.WaitForPendingFinalizers();
