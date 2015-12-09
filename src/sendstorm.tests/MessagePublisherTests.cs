@@ -1,7 +1,10 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using Sendstorm;
 using Sendstorm.Infrastructure;
+using Sendstorm.Subscription;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Sandstorm.Tests.MessagePublisherTests
@@ -133,6 +136,7 @@ namespace Sandstorm.Tests.MessagePublisherTests
             GC.WaitForPendingFinalizers();
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true);
 
+            //Ensures broadcast to a collected object doesn't kill the observer
             publisher.Broadcast(expectedResult);
 
             var newreciever = new FakeHashCodeMessageReciever();
@@ -140,6 +144,25 @@ namespace Sandstorm.Tests.MessagePublisherTests
 
             publisher.Broadcast(expectedResult);
             Assert.AreEqual(expectedResult, newreciever.Message);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void MessagePublisherTests_PublishOnUiThread_FromNonUiThread()
+        {
+            var reciever = new FakeIntMessageReciever();
+            publisher.Subscribe(reciever, executionTarget: ExecutionTarget.UiThread);
+        }
+
+        [TestMethod]
+        public void SynchronizedSubscriptionTest()
+        {
+            var syncContext = new Mock<SynchronizationContext>();
+            var sub = new SynchronizedSubscription(new FakeIntMessageReciever(), null, null, syncContext.Object);
+
+            sub.PublishMessage(5);
+
+            syncContext.Verify(context => context.Post(It.IsAny<SendOrPostCallback>(), 5), Times.Once);
         }
 
         public class FakeIntMessageReciever : IMessageReceiver<int>
