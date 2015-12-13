@@ -14,7 +14,7 @@ namespace Sendstorm.Subscription
 
         public StandardSubscription(object subscriber, object filterOrigin, MethodInfo filter)
         {
-            Shield.EnsureNotNull(() => subscriber);
+            Shield.EnsureNotNull(subscriber, nameof(subscriber));
 
             this.Subscriber = new WeakReference<object>(subscriber);
             this.filter = filter;

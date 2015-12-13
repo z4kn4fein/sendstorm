@@ -34,7 +34,7 @@ namespace Sendstorm
         /// <param name="executionTarget">The target of the message delivery, available values are: BroadcastThread, BackgroundThread, UiThread.</param>
         public void Subscribe<TMessage>(IMessageReceiver<TMessage> messageReciever, Func<TMessage, bool> filter = null, ExecutionTarget executionTarget = ExecutionTarget.BroadcastThread)
         {
-            Shield.EnsureNotNull(() => messageReciever);
+            Shield.EnsureNotNull(messageReciever, nameof(messageReciever));
 
             var messageType = typeof(TMessage);
             var hashCode = messageReciever.GetHashCode();
@@ -73,7 +73,8 @@ namespace Sendstorm
         /// <param name="messageReciever">The subscriber object.</param>
         public void UnSubscribe<TMessage>(IMessageReceiver<TMessage> messageReciever)
         {
-            Shield.EnsureNotNull(() => messageReciever);
+            Shield.EnsureNotNull(messageReciever, nameof(messageReciever));
+
             lock (this.syncObject)
             {
                 var messageType = typeof(TMessage);
