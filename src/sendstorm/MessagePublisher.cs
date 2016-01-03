@@ -13,8 +13,7 @@ namespace Sendstorm
     /// </summary>
     public class MessagePublisher : IMessagePublisher
     {
-        private ImmutableTree<Type, ImmutableTree<StandardSubscription>> subscriptionRepository;
-        private readonly object syncObject = new object();
+        private readonly ConcurrentKeyValueStore<Type, ConcurrentKeyValueStore<int, StandardSubscription>> subscriptionRepository;
         private readonly SynchronizationContext context = SynchronizationContext.Current;
 
         /// <summary>
@@ -22,7 +21,7 @@ namespace Sendstorm
         /// </summary>
         public MessagePublisher()
         {
-            this.subscriptionRepository = ImmutableTree<Type, ImmutableTree<StandardSubscription>>.Empty;
+            this.subscriptionRepository = new ConcurrentKeyValueStore<Type, ConcurrentKeyValueStore<int, StandardSubscription>>();
         }
 
         /// <summary>
@@ -37,33 +36,20 @@ namespace Sendstorm
             Shield.EnsureNotNull(messageReciever, nameof(messageReciever));
 
             var messageType = typeof(TMessage);
-            var hashCode = messageReciever.GetHashCode();
-            var immutableTree = ImmutableTree<StandardSubscription>.Empty;
             var subscription = this.CreateSubscription(messageReciever, filter, executionTarget);
-            var newTree = immutableTree.AddOrUpdate(hashCode, subscription);
+            var subscriptions = this.subscriptionRepository.GetOrAdd(messageType,
+                () => new ConcurrentKeyValueStore<int, StandardSubscription>());
 
-            lock (this.syncObject)
+            subscriptions.AddOrUpdate(messageReciever.GetHashCode(), () => subscription, (oldValue, newValue) =>
             {
-                var newRepository = this.subscriptionRepository.AddOrUpdate(messageType, newTree, (oldValue, newValue) =>
-                {
-                    return oldValue.AddOrUpdate(hashCode, subscription, (oldSubscription, newSubs) =>
-                    {
-                        object target;
-                        if (!oldSubscription.Subscriber.TryGetTarget(out target))
-                        {
-                            oldSubscription.Subscriber.SetTarget(messageReciever);
-                        }
-                        else
-                        {
-                            throw new InvalidOperationException("The given object is already in the subscription list.");
-                        }
+                object target;
+                if (oldValue.Subscriber.TryGetTarget(out target))
+                    throw new InvalidOperationException("The given object is already subscribed.");
+                oldValue.Subscriber.SetTarget(messageReciever);
+                return oldValue;
+            });
 
-                        return oldSubscription;
-                    });
-                });
 
-                this.subscriptionRepository = newRepository;
-            }
         }
 
         /// <summary>
@@ -75,11 +61,11 @@ namespace Sendstorm
         {
             Shield.EnsureNotNull(messageReciever, nameof(messageReciever));
 
-            lock (this.syncObject)
+            var messageType = typeof(TMessage);
+            ConcurrentKeyValueStore<int, StandardSubscription> subscriptions;
+            if (this.subscriptionRepository.TryGet(messageType, out subscriptions))
             {
-                var messageType = typeof(TMessage);
-                var currentRepository = this.subscriptionRepository.GetValueOrDefault(messageType).Update(messageReciever.GetHashCode(), null);
-                this.subscriptionRepository = this.subscriptionRepository.Update(messageType, currentRepository);
+                subscriptions.TryRemove(messageReciever.GetHashCode());
             }
         }
 
@@ -116,8 +102,8 @@ namespace Sendstorm
         private StandardSubscription[] GetSubscribers<TMessage>(TMessage message)
         {
             var messageType = typeof(TMessage);
-            var subscriptions = this.subscriptionRepository.GetValueOrDefault(messageType);
-            return subscriptions?.Enumerate().Where(sub => sub.Value != null).Select(sub => sub.Value).ToArray();
+            ConcurrentKeyValueStore<int, StandardSubscription> subscriptions;
+            return this.subscriptionRepository.TryGet(messageType, out subscriptions) ? subscriptions.GetAll().ToArray() : null;
         }
     }
 }
