@@ -18,7 +18,7 @@ This library contains a portable observer pattern implementation written in c#.
  - Xamarin (Android/iOS/iOS Classic)
 
 ##Subscribe / Broadcast
-When you want to subscribe to a specified event you have to implement the **IMessageReceiver** interface.
+When you want to subscribe to an event, you have to implement the **IMessageReceiver** interface in your subscriber class.
 ```c#
 class Foo : IMessageReceiver<FooMessage>
 {
@@ -50,15 +50,15 @@ messagePublisher.Subscribe<FooMessage>(new Foo(), fooMessage => false);
 > This sample above will completely prevent the **Foo** object from recieving any **FooMessage**, in a real scenario here you can check against some props of the message object, or if you subscribe inside your subscriber object you can check the state of it.
 
 ##Execution target
-You can also specify where you want the **MessagePublisher** delegate your message receive invokations.  
+You can also specify where you want to delegate your messages.  
 ```c#
 messagePublisher.Subscribe<FooMessage>(new Foo(), fooMessage => false,
 	ExecutionTarget.BackgroundThread); 
 ```
 Available options are:
 
- - BroadcastThread (it'll delegate the receive call to the thread from where the broadcast was called)
- - BackgroundThread (it'll create a task and will let the ThreadPool schedule the execution of the receive call)
- - UiThread (it'll delegate the receive call to the UI thread through its SynchronizationContext)
+ - *BroadcastThread* (it'll delegate the receive call to the thread from where the broadcast was called)
+ - *BackgroundThread* (it'll create a task and will let the ThreadPool schedule the execution of the receive call)
+ - *UiThread* (it'll delegate the receive call to the UI thread through its SynchronizationContext)
 
 > The UI thread option only works when the **MessagePublisher** is able to collect a valid SynchronizationContext object for delegating calls to the UI thread. To achieve this you have to instantiate it on the UI thread.
