@@ -1,7 +1,7 @@
 # sendstorm [![Build status](https://ci.appveyor.com/api/projects/status/8xtxxogo6gwbjnyw/branch/master?svg=true)](https://ci.appveyor.com/project/pcsajtai/sendstorm/branch/master) [![Coverage Status](https://coveralls.io/repos/z4kn4fein/sendstorm/badge.svg?branch=master&service=github)](https://coveralls.io/github/z4kn4fein/sendstorm?branch=master) [![Join the chat at https://gitter.im/z4kn4fein/sendstorm](https://img.shields.io/badge/gitter-join%20chat-green.svg)](https://gitter.im/z4kn4fein/sendstorm?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![NuGet Version](http://img.shields.io/nuget/v/Sendstorm.svg?style=flat)](https://www.nuget.org/packages/Sendstorm/) [![NuGet Downloads](http://img.shields.io/nuget/dt/Sendstorm.svg?style=flat)](https://www.nuget.org/packages/Sendstorm/)
-This library contains a portable observer pattern implementation written in c#.
+Sendstorm is a portable pub/sub framework for .NET based solutions.
 
-**Features**:
+##Features
 
  - Subscribe / Broadcast
  - Generic message types
@@ -9,7 +9,7 @@ This library contains a portable observer pattern implementation written in c#.
  - Subscription filters
  - Execution targets
 
-**Supported platforms**:
+##Supported platforms
 
  - .NET 4.5 and above
  - Windows 8/8.1/10
@@ -18,7 +18,7 @@ This library contains a portable observer pattern implementation written in c#.
  - Xamarin (Android/iOS/iOS Classic)
 
 ##Subscribe / Broadcast
-When you want to subscribe to an event, you have to implement the **IMessageReceiver** interface in your subscriber class.
+When you want to subscribe to an event, you have to implement the `IMessageReceiver` interface in your subscriber class.
 ```c#
 class Foo : IMessageReceiver<FooMessage>
 {
@@ -47,7 +47,7 @@ If you want to receive the messages conditionally you can specify a filter for y
 ```c#
 messagePublisher.Subscribe<FooMessage>(new Foo(), fooMessage => false); 
 ```
-> This sample above will completely prevent the **Foo** object from recieving any **FooMessage**, in a real scenario here you can check against some props of the message object, or if you subscribe inside your subscriber object you can check the state of it.
+> This sample above will completely prevent the `Foo` object from recieving any `FooMessage`, in a real scenario here you can check against some properties of the message object, or the state of your subscriber class.
 
 ##Execution target
 You can also specify where you want to delegate your messages.  
@@ -59,6 +59,6 @@ Available options are:
 
  - *BroadcastThread* (it'll delegate the receive call to the thread from where the broadcast was called)
  - *BackgroundThread* (it'll create a task and will let the ThreadPool schedule the execution of the receive call)
- - *UiThread* (it'll delegate the receive call to the UI thread through its SynchronizationContext)
+ - *UiThread* (it'll delegate the receive call to the UI thread through its `SynchronizationContext`)
 
-> The UI thread option only works when the **MessagePublisher** is able to collect a valid SynchronizationContext object for delegating calls to the UI thread. To achieve this you have to instantiate it on the UI thread.
+> The UI thread option only works when the `MessagePublisher` is able to collect a valid `SynchronizationContext` object for delegating calls to the UI thread. To achieve this you have to instantiate it on the UI thread.
