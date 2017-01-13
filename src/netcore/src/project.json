@@ -6,5 +6,15 @@
   },
   "frameworks": {
     "netstandard1.0": {}
+  },
+   "packOptions": {
+    "summary": ".NET core version of the Sendstorm library.",
+    "iconUrl": "https://goo.gl/I3hRfL",
+    "projectUrl": "https://github.com/z4kn4fein/sendstorm",
+    "licenseUrl": "https://raw.githubusercontent.com/z4kn4fein/sendstorm/master/LICENSE",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/z4kn4fein/sendstorm"
+    }
   }
 }
