@@ -1,13 +1,12 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using Sendstorm;
 using Sendstorm.Infrastructure;
 using Sendstorm.Subscription;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Sandstorm.Tests.MessagePublisherTests
+namespace Sendstorm.Tests
 {
     [TestClass]
     public class MessagePublisherTests

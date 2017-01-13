@@ -1,27 +1,24 @@
 version: 1.0.{build}
-environment:
-  COVERALLS_REPO_TOKEN:
-    secure: 050eKctkQvknlaXWi3kQY0u/H8dfNN3NWXaaoRi5L+tWUYfOaD59Ezp0IhycjXKA
 pull_requests:
   do_not_increment_build_number: true
 configuration: Release
 assembly_info:
   patch: true
-  file: 'src\sendstorm\**\AssemblyInfo.*'
+  file: 'src\netcore\**\AssemblyInfo.*'
   assembly_version: '{version}'
   assembly_file_version: '{version}'
   assembly_informational_version: '{version}'
 before_build:
-- nuget restore src\sendstorm.sln
+- nuget restore src\netcore\sendstorm.core.sln
 build:
-  project: src\sendstorm.sln
+  project: src\netcore\sendstorm.core.sln
   publish_nuget: true
   publish_nuget_symbols: false
   include_nuget_references: true
   parallel: true
   verbosity: normal
 test_script:
-- ps: . .\coverage.ps1
+- ps: . .\test-core.ps1
 notifications:
 - provider: Email
   to:

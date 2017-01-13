@@ -5,11 +5,11 @@ using System.Runtime.CompilerServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Sendstorm")]
-[assembly: AssemblyDescription("Portable messaging c# library")]
+[assembly: AssemblyTitle("Sendstorm.Core")]
+[assembly: AssemblyDescription(".NET core version of the Sendstorm library.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Peter Csajtai")]
-[assembly: AssemblyProduct("Sendstorm")]
+[assembly: AssemblyProduct("Sendstorm.Core")]
 [assembly: AssemblyCopyright("Copyright © Peter Csajtai 2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
