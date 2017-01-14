@@ -16,6 +16,7 @@ Sendstorm is a portable pub/sub framework for .NET based solutions.
  - Windows Phone Silverlight 8/8.1
  - Windows Phone 8.1
  - Xamarin (Android/iOS/iOS Classic)
+ - .NET core [![Build status](https://ci.appveyor.com/api/projects/status/jn49cmxvuesxqb28/branch/master?svg=true)](https://ci.appveyor.com/project/pcsajtai/sendstorm-core/branch/master) [![NuGet Version](https://buildstats.info/nuget/Sendstorm.Core)](https://www.nuget.org/packages/Sendstorm.Core/)
 
 ##Subscribe / Broadcast
 When you want to subscribe to an event, you have to implement the `IMessageReceiver` interface in your subscriber class.
