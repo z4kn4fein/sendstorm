@@ -16,8 +16,8 @@
         BackgroundThread,
 
         /// <summary>
-        /// Represents the Ui thread execution target.
+        /// Represents the synchronized execution target.
         /// </summary>
-        UiThread
+        Synchronized
     }
 }

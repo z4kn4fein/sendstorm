@@ -105,11 +105,11 @@ namespace Sendstorm.Tests
         public void MessagePublisherTests_PublishOnUiThread_FromNonUiThread()
         {
             var reciever = new Mock<IMessageReceiver<int>>();
-            publisher.Subscribe(reciever.Object, executionTarget: ExecutionTarget.UiThread);
+            publisher.Subscribe(reciever.Object, executionTarget: ExecutionTarget.Synchronized);
         }
 
         [TestMethod]
-        public void SynchronizedSubscriptionTest()
+        public void MessagePublisherTests_SynchronizedSubscriptionTest()
         {
             var syncContext = new Mock<SynchronizationContext>();
             var sub = new SynchronizedSubscription(new Mock<IMessageReceiver<int>>().Object, null, null, syncContext.Object);
