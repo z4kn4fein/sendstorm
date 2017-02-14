@@ -16,7 +16,7 @@ Sendstorm is a portable pub/sub framework for .NET based solutions.
  - Windows Phone Silverlight 8/8.1
  - Windows Phone 8.1
  - Xamarin (Android/iOS/iOS Classic)
- - .NET core [![Build status](https://ci.appveyor.com/api/projects/status/jn49cmxvuesxqb28/branch/master?svg=true)](https://ci.appveyor.com/project/pcsajtai/sendstorm-core/branch/master) [![NuGet Version](https://buildstats.info/nuget/Sendstorm.Core)](https://www.nuget.org/packages/Sendstorm.Core/)
+ - .NET Standard 1.0
 
 ##Subscribe / Broadcast
 When you want to subscribe to an event, you have to implement the `IMessageReceiver` interface in your subscriber class.
@@ -60,6 +60,6 @@ Available options are:
 
  - *BroadcastThread* (it'll delegate the receive call to the thread from where the broadcast was called)
  - *BackgroundThread* (it'll create a task and will let the ThreadPool schedule the execution of the receive call)
- - *UiThread* (it'll delegate the receive call to the UI thread through its `SynchronizationContext`)
+ - *Synchronized* (it'll delegate the receive call to the current `SynchronizationContext`)
 
-> The UI thread option only works when the `MessagePublisher` is able to collect a valid `SynchronizationContext` object for delegating calls to the UI thread. To achieve this you have to instantiate it on the UI thread.
+> The Synchronized option only works when the `MessagePublisher` is able to collect a valid `SynchronizationContext` object for delegating calls via it's `SynchronizationContext.Current` static property. To achieve this you have to instantiate it on a thread where the `Current` property is properly set.
