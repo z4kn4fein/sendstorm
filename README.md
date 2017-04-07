@@ -1,7 +1,7 @@
 # sendstorm [![Appveyor build status](https://img.shields.io/appveyor/ci/pcsajtai/sendstorm/master.svg?label=appveyor)](https://ci.appveyor.com/project/pcsajtai/sendstorm/branch/master) [![Travis CI build status](https://img.shields.io/travis/z4kn4fein/sendstorm/master.svg?label=travis-ci)](https://travis-ci.org/z4kn4fein/sendstorm) [![Coverage Status](https://coveralls.io/repos/github/z4kn4fein/sendstorm/badge.svg?branch=master)](https://coveralls.io/github/z4kn4fein/sendstorm?branch=master) [![Join the chat at https://gitter.im/z4kn4fein/sendstorm](https://img.shields.io/badge/gitter-join%20chat-1dce73.svg)](https://gitter.im/z4kn4fein/sendstorm?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![NuGet Version](https://buildstats.info/nuget/Sendstorm)](https://www.nuget.org/packages/Sendstorm/)
 Sendstorm is a portable pub/sub framework for .NET based solutions.
 
-##Features
+## Features
 
  - Subscribe / Broadcast
  - Generic message types
@@ -9,7 +9,7 @@ Sendstorm is a portable pub/sub framework for .NET based solutions.
  - Subscription filters
  - Execution targets
 
-##Supported platforms
+## Supported platforms
 
  - .NET 4.5 and above
  - Windows 8/8.1/10
@@ -18,7 +18,7 @@ Sendstorm is a portable pub/sub framework for .NET based solutions.
  - Xamarin (Android/iOS/iOS Classic)
  - .NET Standard 1.0
 
-##Subscribe / Broadcast
+## Subscribe / Broadcast
 When you want to subscribe to an event, you have to implement the `IMessageReceiver` interface in your subscriber class.
 ```c#
 class Foo : IMessageReceiver<FooMessage>
@@ -43,14 +43,14 @@ You are also able to unsubscribe if you don't want to receive messages anymore.
 ```c#
 messagePublisher.UnSubscribe<FooMessage>(foo);
 ```
-##Filters
+## Filters
 If you want to receive the messages conditionally you can specify a filter for your subscription which's parameter will be the message object.
 ```c#
 messagePublisher.Subscribe<FooMessage>(new Foo(), fooMessage => false); 
 ```
 > This sample above will completely prevent the `Foo` object from recieving any `FooMessage`, in a real scenario here you can check against some properties of the message object, or the state of your subscriber class.
 
-##Execution target
+## Execution target
 You can also specify where you want to delegate your messages.  
 ```c#
 messagePublisher.Subscribe<FooMessage>(new Foo(), fooMessage => false,
