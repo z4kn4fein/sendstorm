@@ -23,10 +23,10 @@ When you want to subscribe to an event, you have to implement the `IMessageRecei
 ```c#
 class Foo : IMessageReceiver<FooMessage>
 {
-	public void Receive(FooMessage message)
-	{
-		//do something with the message
-	}
+    public void Receive(FooMessage message)
+    {
+        //do something with the message
+    }
 }
 ```
 Then you can subscribe your class as a listener to that specific event.
@@ -53,8 +53,7 @@ messagePublisher.Subscribe<FooMessage>(new Foo(), fooMessage => false);
 ## Execution target
 You can also specify where you want to delegate your messages.  
 ```c#
-messagePublisher.Subscribe<FooMessage>(new Foo(), fooMessage => false,
-	ExecutionTarget.BackgroundThread); 
+messagePublisher.Subscribe<FooMessage>(new Foo(), fooMessage => false, ExecutionTarget.BackgroundThread); 
 ```
 Available options are:
 
