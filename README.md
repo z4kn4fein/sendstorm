@@ -59,6 +59,6 @@ Available options are:
 
  - *BroadcastThread* (it'll delegate the receive call to the thread from where the broadcast was called)
  - *BackgroundThread* (it'll create a task and will let the ThreadPool schedule the execution of the receive call)
- - *Synchronized* (it'll delegate the receive call to the current `SynchronizationContext`)
+ - *Synchronized* (it'll delegate the receive call to the captured `SynchronizationContext`)
 
 > The Synchronized option only works when the `MessagePublisher` is able to collect a valid `SynchronizationContext` object for delegating calls via it's `SynchronizationContext.Current` static property. To achieve this you have to instantiate it on a thread where the `Current` property is properly set.
