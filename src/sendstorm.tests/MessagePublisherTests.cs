@@ -24,22 +24,22 @@ namespace Sendstorm.Tests
         public void MessagePublisherTests_SubscribeDuplicatesTest()
         {
             var reciever = new Mock<IMessageReceiver<int>>();
-            publisher.Subscribe(reciever.Object);
-            publisher.Subscribe(reciever.Object);
+            this.publisher.Subscribe(reciever.Object);
+            this.publisher.Subscribe(reciever.Object);
         }
 
         [TestMethod]
         public void MessagePublisherTests_BroadcastWithoutSubscribers()
         {
-            publisher.Broadcast(5);
+            this.publisher.Broadcast(5);
         }
 
         [TestMethod]
         public void MessagePublisherTests_SubscribePublishTest()
         {
             var reciever = new Mock<IMessageReceiver<int>>();
-            publisher.Subscribe(reciever.Object);
-            publisher.Broadcast(5);
+            this.publisher.Subscribe(reciever.Object);
+            this.publisher.Broadcast(5);
             reciever.Verify(rec => rec.Receive(5), Times.Once);
 
         }
@@ -48,19 +48,122 @@ namespace Sendstorm.Tests
         public void MessagePublisherTests_UnSubscriberPublishTest()
         {
             var reciever = new Mock<IMessageReceiver<int>>();
-            publisher.Subscribe(reciever.Object);
-            publisher.UnSubscribe(reciever.Object);
-            publisher.Broadcast(5);
+            var reciever2 = new Mock<IMessageReceiver<int>>();
+            this.publisher.Subscribe(reciever.Object);
+            this.publisher.Subscribe(reciever2.Object);
+            this.publisher.UnSubscribe(reciever.Object);
+            this.publisher.Broadcast(5);
 
             reciever.Verify(rec => rec.Receive(It.IsAny<int>()), Times.Never);
+            reciever2.Verify(rec => rec.Receive(It.IsAny<int>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void MessagePublisherTests_UnSubscriberPublishTest2()
+        {
+            var reciever = new Mock<IMessageReceiver<int>>();
+            var reciever2 = new Mock<IMessageReceiver<int>>();
+            var reciever3 = new Mock<IMessageReceiver<int>>();
+            var reciever4 = new Mock<IMessageReceiver<int>>();
+            var reciever5 = new Mock<IMessageReceiver<int>>();
+
+            this.publisher.Subscribe(reciever.Object);
+            this.publisher.Subscribe(reciever2.Object);
+            this.publisher.Subscribe(reciever3.Object);
+            this.publisher.Subscribe(reciever4.Object);
+            this.publisher.Subscribe(reciever5.Object);
+
+            this.publisher.Broadcast(5);
+
+            reciever.Verify(rec => rec.Receive(5), Times.Once);
+            reciever2.Verify(rec => rec.Receive(5), Times.Once);
+            reciever3.Verify(rec => rec.Receive(5), Times.Once);
+            reciever4.Verify(rec => rec.Receive(5), Times.Once);
+            reciever5.Verify(rec => rec.Receive(5), Times.Once);
+
+            this.publisher.UnSubscribe(reciever.Object);
+
+            this.publisher.Broadcast(6);
+
+            reciever.Verify(rec => rec.Receive(6), Times.Never);
+            reciever2.Verify(rec => rec.Receive(6), Times.Once);
+            reciever3.Verify(rec => rec.Receive(6), Times.Once);
+            reciever4.Verify(rec => rec.Receive(6), Times.Once);
+            reciever5.Verify(rec => rec.Receive(6), Times.Once);
+
+            this.publisher.UnSubscribe(reciever5.Object);
+
+            this.publisher.Broadcast(7);
+
+            reciever.Verify(rec => rec.Receive(7), Times.Never);
+            reciever2.Verify(rec => rec.Receive(7), Times.Once);
+            reciever3.Verify(rec => rec.Receive(7), Times.Once);
+            reciever4.Verify(rec => rec.Receive(7), Times.Once);
+            reciever5.Verify(rec => rec.Receive(7), Times.Never);
+
+            this.publisher.UnSubscribe(reciever3.Object);
+
+            this.publisher.Broadcast(8);
+
+            reciever.Verify(rec => rec.Receive(8), Times.Never);
+            reciever2.Verify(rec => rec.Receive(8), Times.Once);
+            reciever3.Verify(rec => rec.Receive(8), Times.Never);
+            reciever4.Verify(rec => rec.Receive(8), Times.Once);
+            reciever5.Verify(rec => rec.Receive(8), Times.Never);
+
+            this.publisher.UnSubscribe(reciever4.Object);
+
+            this.publisher.Broadcast(9);
+
+            reciever.Verify(rec => rec.Receive(9), Times.Never);
+            reciever2.Verify(rec => rec.Receive(9), Times.Once);
+            reciever3.Verify(rec => rec.Receive(9), Times.Never);
+            reciever4.Verify(rec => rec.Receive(9), Times.Never);
+            reciever5.Verify(rec => rec.Receive(9), Times.Never);
+
+            this.publisher.UnSubscribe(reciever2.Object);
+
+            this.publisher.Broadcast(10);
+
+            reciever.Verify(rec => rec.Receive(10), Times.Never);
+            reciever2.Verify(rec => rec.Receive(10), Times.Never);
+            reciever3.Verify(rec => rec.Receive(10), Times.Never);
+            reciever4.Verify(rec => rec.Receive(10), Times.Never);
+            reciever5.Verify(rec => rec.Receive(10), Times.Never);
+        }
+
+        [TestMethod]
+        public void MessagePublisherTests_UnSubscriberPublishTest3()
+        {
+            var reciever = new Mock<IMessageReceiver<int>>();
+            var reciever2 = new Mock<IMessageReceiver<int>>();
+            var reciever3 = new Mock<IMessageReceiver<int>>();
+            var reciever4 = new Mock<IMessageReceiver<int>>();
+            var reciever5 = new Mock<IMessageReceiver<int>>();
+
+            this.publisher.Subscribe(reciever.Object);
+            this.publisher.Subscribe(reciever2.Object);
+            this.publisher.Subscribe(reciever3.Object);
+            this.publisher.Subscribe(reciever4.Object);
+            this.publisher.Subscribe(reciever5.Object);
+
+            this.publisher.UnSubscribe(reciever3.Object);
+
+            this.publisher.Broadcast(5);
+
+            reciever.Verify(rec => rec.Receive(5), Times.Once);
+            reciever2.Verify(rec => rec.Receive(5), Times.Once);
+            reciever3.Verify(rec => rec.Receive(5), Times.Never);
+            reciever4.Verify(rec => rec.Receive(5), Times.Once);
+            reciever5.Verify(rec => rec.Receive(5), Times.Once);
         }
 
         [TestMethod]
         public void MessagePublisherTests_SubscribeConditional()
         {
             var reciever = new Mock<IMessageReceiver<int>>();
-            publisher.Subscribe(reciever.Object, result => result == 5);
-            publisher.Broadcast(0);
+            this.publisher.Subscribe(reciever.Object, result => result == 5);
+            this.publisher.Broadcast(0);
 
             reciever.Verify(rec => rec.Receive(It.IsAny<int>()), Times.Never);
         }
@@ -73,8 +176,8 @@ namespace Sendstorm.Tests
             reciever.Setup(rec => rec.Receive(It.IsAny<int>()))
                 .Callback((int message) => completionSource.SetResult(message))
                 .Verifiable();
-            publisher.Subscribe(reciever.Object, executionTarget: ExecutionTarget.BackgroundThread);
-            publisher.Broadcast(5);
+            this.publisher.Subscribe(reciever.Object, executionTarget: ExecutionTarget.BackgroundThread);
+            this.publisher.Broadcast(5);
             var result = completionSource.Task.Result;
             Assert.AreEqual(5, result);
         }
@@ -84,19 +187,19 @@ namespace Sendstorm.Tests
         {
             var reciever = new WeakReferenceMessageReceiver();
 
-            publisher.Subscribe(reciever);
+            this.publisher.Subscribe(reciever);
             reciever = null;
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true);
             GC.WaitForPendingFinalizers();
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true);
 
             //Ensures broadcast to a collected object doesn't kill the observer
-            publisher.Broadcast(5);
+            this.publisher.Broadcast(5);
 
             var newreciever = new WeakReferenceMessageReceiver();
-            publisher.Subscribe(newreciever);
+            this.publisher.Subscribe(newreciever);
 
-            publisher.Broadcast(5);
+            this.publisher.Broadcast(5);
             Assert.AreEqual(5, newreciever.Message);
         }
 
@@ -105,7 +208,7 @@ namespace Sendstorm.Tests
         public void MessagePublisherTests_PublishOnUiThread_FromNonUiThread()
         {
             var reciever = new Mock<IMessageReceiver<int>>();
-            publisher.Subscribe(reciever.Object, executionTarget: ExecutionTarget.Synchronized);
+            this.publisher.Subscribe(reciever.Object, executionTarget: ExecutionTarget.Synchronized);
         }
 
         [TestMethod]

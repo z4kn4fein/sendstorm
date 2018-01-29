@@ -17,7 +17,7 @@
     artifact: /.*\.nupkg/
 
   environment:
-    build_version: 2.1.1
+    build_version: 2.1.2
     COVERALLS_REPO_TOKEN:
       secure: 050eKctkQvknlaXWi3kQY0u/H8dfNN3NWXaaoRi5L+tWUYfOaD59Ezp0IhycjXKA
 
@@ -46,6 +46,7 @@
   - ps: . .\set-debug-type.ps1 "src\sendstorm\sendstorm.csproj"
   - dotnet test src\sendstorm.tests\sendstorm.tests.csproj  -f net45 -c %CONFIGURATION% --no-build
   - dotnet test src\sendstorm.tests\sendstorm.tests.csproj  -f netcoreapp1.0 -c %CONFIGURATION% --no-build
+  - dotnet test src\sendstorm.tests\sendstorm.tests.csproj  -f netcoreapp2.0 -c %CONFIGURATION% --no-build
   - ps: . .\coverage.ps1
   
   artifacts:
@@ -74,7 +75,7 @@
       secure: 2bITagXOj2s3bTJaGXh8/iyWtST8OQOFaMM+0GAKgZts9OjCVCiV7C+E/0SYsM6M
 
   environment:
-    build_version: 2.1.1
+    build_version: 2.1.2
     COVERALLS_REPO_TOKEN:
       secure: 050eKctkQvknlaXWi3kQY0u/H8dfNN3NWXaaoRi5L+tWUYfOaD59Ezp0IhycjXKA
 
@@ -101,6 +102,7 @@
   - ps: . .\set-debug-type.ps1 "src\sendstorm\sendstorm.csproj"
   - dotnet test src\sendstorm.tests\sendstorm.tests.csproj  -f net45 -c %CONFIGURATION% --no-build
   - dotnet test src\sendstorm.tests\sendstorm.tests.csproj  -f netcoreapp1.0 -c %CONFIGURATION% --no-build
+  - dotnet test src\sendstorm.tests\sendstorm.tests.csproj  -f netcoreapp2.0 -c %CONFIGURATION% --no-build
   - ps: . .\coverage.ps1
   
   artifacts:
