@@ -230,10 +230,5 @@ namespace Sendstorm.Tests
         {
             this.Message = message;
         }
-
-        public override int GetHashCode()
-        {
-            return 10;
-        }
     }
 }

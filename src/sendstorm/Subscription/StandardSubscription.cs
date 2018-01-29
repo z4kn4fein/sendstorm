@@ -1,7 +1,7 @@
 ﻿using Sendstorm.Infrastructure;
+using Sendstorm.Utils;
 using System;
 using System.Reflection;
-using Sendstorm.Utils;
 
 namespace Sendstorm.Subscription
 {
@@ -23,21 +23,17 @@ namespace Sendstorm.Subscription
 
         public virtual void PublishMessage<TMessage>(TMessage message)
         {
-            object target;
-            if (!this.IsSubscriptionValid(message, out target))
+            if (!this.IsSubscriptionValid(message, out var target))
                 return;
 
             var reciever = target as IMessageReceiver<TMessage>;
-
             reciever?.Receive(message);
         }
 
         private bool IsSubscriptionValid<TMessage>(TMessage message, out object target)
         {
-            object origin;
             if (!this.Subscriber.TryGetTarget(out target)) return false;
-
-            return this.filter == null || !this.filterOrigin.TryGetTarget(out origin) || (bool)this.filter.Invoke(origin, new object[] { message });
+            return this.filter == null || !this.filterOrigin.TryGetTarget(out var origin) || (bool)this.filter.Invoke(origin, new object[] { message });
         }
     }
 }

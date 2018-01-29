@@ -13,7 +13,7 @@ namespace Sendstorm
     /// <inheritdoc />
     public class MessagePublisher : IMessagePublisher
     {
-        private AvlTreeKeyValue<Type, LinkedStore<object, StandardSubscription>> subscriptionRepository;
+        private AvlTreeKeyValue<Type, LinkedStore<int, StandardSubscription>> subscriptionRepository;
         private readonly SynchronizationContext context = SynchronizationContext.Current;
 
         /// <summary>
@@ -21,7 +21,7 @@ namespace Sendstorm
         /// </summary>
         public MessagePublisher()
         {
-            this.subscriptionRepository = AvlTreeKeyValue<Type, LinkedStore<object, StandardSubscription>>.Empty;
+            this.subscriptionRepository = AvlTreeKeyValue<Type, LinkedStore<int, StandardSubscription>>.Empty;
         }
 
         /// <inheritdoc />
@@ -29,9 +29,10 @@ namespace Sendstorm
         {
             Shield.EnsureNotNull(messageReciever, nameof(messageReciever));
 
+            var hash = messageReciever.GetHashCode();
             var messageType = typeof(TMessage);
             var subscription = this.CreateSubscription(messageReciever, filter, executionTarget);
-            var newStore = new LinkedStore<object, StandardSubscription>(messageReciever, subscription);
+            var newStore = new LinkedStore<int, StandardSubscription>(hash, subscription);
 
             Swap.SwapValue(ref this.subscriptionRepository,
                 repo => repo.AddOrUpdate(messageType, newStore,
@@ -40,7 +41,7 @@ namespace Sendstorm
                         var current = oldValue;
                         while (true)
                         {
-                            if (messageReciever == current.Key)
+                            if (hash == current.Key)
                                 if (current.Value.Subscriber.TryGetTarget(out var target))
                                     throw new InvalidOperationException();
                                 else
@@ -49,7 +50,7 @@ namespace Sendstorm
                                     return oldValue;
                                 }
 
-                            if (current.Next == LinkedStore<object, StandardSubscription>.Empty)
+                            if (current.Next == LinkedStore<int, StandardSubscription>.Empty)
                             {
                                 current.Next = newStore;
                                 return oldValue;
@@ -65,11 +66,12 @@ namespace Sendstorm
         {
             Shield.EnsureNotNull(messageReciever, nameof(messageReciever));
 
+            var hash = messageReciever.GetHashCode();
             var messageType = typeof(TMessage);
             var subscribers = this.subscriptionRepository.GetOrDefault(messageType);
             if (subscribers == null) return;
 
-            if (subscribers.Key == messageReciever)
+            if (subscribers.Key == hash)
             {
                 Swap.SwapValue(ref this.subscriptionRepository,
                     repo => repo.AddOrUpdate(messageType, subscribers.Next,
@@ -86,13 +88,13 @@ namespace Sendstorm
                         var current = oldValue.Next;
                         while (true)
                         {
-                            if (messageReciever == current.Key)
+                            if (hash == current.Key)
                             {
                                 previous.Next = current.Next;
                                 return oldValue;
                             }
 
-                            if (current.Next == LinkedStore<object, StandardSubscription>.Empty)
+                            if (current.Next == LinkedStore<int, StandardSubscription>.Empty)
                                 return oldValue;
 
                             previous = current;
